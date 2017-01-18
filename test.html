@@ -1,0 +1,116 @@
+<html>
+<body>
+<input type="button" value="start" id="startstop"/>
+<br>
+frequency [Hz]: <input type="number" value="440" min="20" max="20000" step="10" id="frequency"/>
+<br>
+amplitude: <input type="number" value="0.1" min="0" max="1" step="0.1" id="amplitude"/>
+<br>
+<span id="filterLog"> Hello!</span>
+</body>
+</html>
+<script type = "text/javascript">
+
+var IIRLowPassFilter = {
+    scriptProcessor : false,
+    inputEffectiveValue : 0,
+    filteredEffectiveValue : 0,
+    sink : false,
+    
+    init : function (audioCtx) {
+        if (!!this.scriptProcessor) {
+            delete this.scriptProcessor;
+            this.scriptProcessor = false;
+        }
+        
+        if (!!this.sink){
+            delete this.sink;
+            this.sink = false;
+        }
+        
+        this.scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 0);
+        this.sink = audioCtx.createGain();
+        
+        this.scriptProcessor.onaudioprocess = function (audioProcessingEvent) {
+            IIRLowPassFilter.filterData(audioProcessingEvent);
+        }
+        
+        //this.scriptProcessor.connect(audioCtx.destination);
+        
+/*        navigator.mediaDevices.getUserMedia ({audio: true, video: false}).then (function(stream){
+            var source = audioCtx.createMediaStreamSource(stream);
+            source.connect (IIRLowPassFilter.scriptProcessor);
+        }) */
+    },
+    
+    onPassBand : false,
+    onRejectBand : false,
+    
+    filterData : function (audioProcessingEvent) {
+        this.inputEffectiveValue = 0;
+        this.filteredEffectiveValue = 0;
+        
+        var data = audioProcessingEvent.inputBuffer.getChannelData (0);
+        var filteredValues = []; //audioProcessingEvent.outputBuffer.getChannelData (0);
+        filteredValues[0] = 0;
+        for (var i = 1; i < data.length; i++){
+            this.inputEffectiveValue += Math.abs (data[i]);
+            filteredValues[i] = 0.15 * data [i] + 0.85 * filteredValues[i - 1];
+            this.filteredEffectiveValue += Math.abs (filteredValues[i]);
+        }
+        
+        this.inputEffectiveValue /= data.length;
+        this.filteredEffectiveValue /= data.length;
+        if (this.inputEffectiveValue > 0.1) {
+            var ratio = this.filteredEffectiveValue / this.inputEffectiveValue;
+            if (ratio > 0.5) {
+                if (!!this.onPassBand)
+                    this.onPassBand();
+            } else {
+                if (!!this.onRejectBand)
+                    this.onRejectBand();
+            }
+        }
+    }
+};
+
+
+(function() {
+    var oscillator = false;
+    var audioCtx = false;
+
+    document.getElementById("startstop").onclick = function () {
+        if (this.value == "start") {
+            this.value = "stop";
+        
+        if (!oscillator) {
+        
+            if (!audioCtx)
+                audioCtx = new AudioContext();
+                
+            IIRLowPassFilter.init (audioCtx);
+            IIRLowPassFilter.onPassBand = function () { document.getElementById ("filterLog").innerHTML = "pass"; }
+            IIRLowPassFilter.onRejectBand = function () {document.getElementById ("filterLog").innerHTML = "reject";}
+            
+            oscillator = audioCtx.createOscillator();
+            oscillator.frequency.value = document.getElementById("frequency").value;
+            oscillator.type = "sine";
+            oscillator.connect (IIRLowPassFilter.scriptProcessor);
+            //oscillator.connect (audioCtx.destination);
+            oscillator.start();
+        }
+        
+        } else {
+            oscillator.stop();
+            delete oscillator;
+            oscillator = false;
+            this.value = "start";
+        }
+    }
+
+/*    setInterval (function () {
+        document.getElementById ("filterLog").innerHTML = "Input effective value: " + IIRLowPassFilter.inputEffectiveValue + "; output effective value: " + IIRLowPassFilter.filteredEffectiveValue;
+    }, 100); */
+})();
+
+</script>
