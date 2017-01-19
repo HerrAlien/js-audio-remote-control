@@ -1,4 +1,7 @@
 <html>
+<head>
+    <script src="signalsource.js" type="text/javascript"></script>
+</head>
 <body>
 <input type="button" value="start" id="startstop"/>
 <br>
@@ -11,105 +14,17 @@ amplitude: <input type="number" value="0.1" min="0" max="1" step="0.1" id="ampli
 </html>
 <script type = "text/javascript">
 
-var IIRLowPassFilter = {
-    node : false,
-    inputEffectiveValue : 0,
-    filteredEffectiveValue : 0,
-    
-    internal : {
-        bufferLength : 4096,
-        processingLength : 256,
-        signalPresenceThreshold : 26,
-        passRejectThreshold : 128,
-        filteredValues : []
-    },
-    
-    init : function (audioCtx) {
-        if (!!this.node) {
-            delete this.node;
-            this.node = false;
-        }
-        
-        if (!!this.sink){
-            delete this.sink;
-            this.sink = false;
-        }
-        
-        this.node = audioCtx.createScriptProcessor(this.internal.bufferLength, 1, 1);
-        this.sink = audioCtx.createGain();
-        
-        this.node.onaudioprocess = function (audioProcessingEvent) {
-            IIRLowPassFilter.filterData(audioProcessingEvent);
-        }
-        
-        this.node.connect(audioCtx.destination);
-        
 /*        navigator.mediaDevices.getUserMedia ({audio: true, video: false}).then (function(stream){
             var source = audioCtx.createMediaStreamSource(stream);
             source.connect (IIRLowPassFilter.node);
         }) */
-    },
-    
-    onPassBand : false,
-    onRejectBand : false,
-    
-    filterData : function (audioProcessingEvent) {
-        this.inputEffectiveValue = 0;
-        this.filteredEffectiveValue = 0;
-        
-        var data = audioProcessingEvent.inputBuffer.getChannelData (0);
-        this.internal.filteredValues[0] = 0;
-        for (var i = 1; i < this.internal.processingLength; i++){
-            this.inputEffectiveValue += Math.abs (data[i]);
-            this.internal.filteredValues[i] = 0.15 * data [i] + 0.85 * this.internal.filteredValues[i - 1];
-            this.filteredEffectiveValue += Math.abs (this.internal.filteredValues[i]);
-        }
-        
-        if (this.inputEffectiveValue > this.internal.signalPresenceThreshold) {
-            if (this.filteredEffectiveValue > this.internal.passRejectThreshold) {
-                if (!!this.onPassBand)
-                    this.onPassBand();
-            } else {
-                if (!!this.onRejectBand)
-                    this.onRejectBand();
-            }
-        }
-    }
-};
+
 
 
 (function() {
-    var oscillator = false;
-    var audioCtx = false;
 
-    document.getElementById("startstop").onclick = function () {
-        if (this.value == "start") {
-            this.value = "stop";
-        
-        if (!oscillator) {
-        
-            if (!audioCtx)
-                audioCtx = new AudioContext();
-                
-            IIRLowPassFilter.init (audioCtx);
-            IIRLowPassFilter.onPassBand = function () { document.getElementById ("filterLog").innerHTML = "pass"; }
-            IIRLowPassFilter.onRejectBand = function () {document.getElementById ("filterLog").innerHTML = "reject";}
-            
-            oscillator = audioCtx.createOscillator();
-            oscillator.frequency.value = document.getElementById("frequency").value;
-            oscillator.type = "sine";
-            oscillator.connect (IIRLowPassFilter.node);
-            oscillator.connect (audioCtx.destination);
-            oscillator.start();
-        }
-        
-        } else {
-            oscillator.stop();
-            delete oscillator;
-            oscillator = false;
-            this.value = "start";
-        }
-    }
+    SignalSource.restart();
+
 })();
 
 </script>

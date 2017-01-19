@@ -38,7 +38,7 @@ var SignalSource = {
         var omega = 0;
         
         // plain PWM for now.
-        var numOfSkippedSamples = Math.round (buffLen * this.fillFactor);
+        var numOfSkippedSamples = Math.round (pwmData.length * this.fillFactor);
         
         for (var i = 0; i < pwmData.length; i++) {
             
@@ -58,15 +58,14 @@ var SignalSource = {
         var increaseFillFactorOmegaStep = 2 * Math.PI * this.config.increaseFillFactorFreq / this.audioContext.sampleRate;
         var increaseFillFactorOmega = 0;
 
-        var cmdAmplitude = 0.5 * this.config.amplitude;
         for (var i = 0; i < commandData.length; i++) {
-            commandData [i] =  cmdAmplitude * (Math.sin(decreaseFillFactorOmega) + Math.sin(increaseFillFactorOmega));
+            commandData [i] =  0.5 * (Math.sin(decreaseFillFactorOmega) + Math.sin(increaseFillFactorOmega));
             decreaseFillFactorOmega += decreaseFillFactorOmegaStep;
             increaseFillFactorOmega += increaseFillFactorOmegaStep;
         }        
     },
     
-    updateBuffer : function () {
+    restart : function () {
     
         if (!this.audioContext)
             this.audioContext = new AudioContext();
@@ -90,5 +89,7 @@ var SignalSource = {
         this.source = this.audioContext.createBufferSource();
         this.source.buffer = this.buffer;
         this.source.loop = true;
+        this.source.connect (this.audioContext.destination);
+        this.source.start();
     }
 };
