@@ -59,6 +59,7 @@ var IIRLowPassFilter = {
     
     onPassBand : false,
     onRejectBand : false,
+    onNoSignal : false,
     
     filterData : function (audioProcessingEvent) {
         this.inputEffectiveValue = 0;
@@ -80,6 +81,9 @@ var IIRLowPassFilter = {
                 if (!!this.onRejectBand)
                     this.onRejectBand();
             }
+        } else {
+            if (!!this.onNoSignal)
+                this.onNoSignal();
         }
     }
 };
