@@ -1,50 +1,92 @@
 <html>
 <head>
     <script src="signalsource.js" type="text/javascript"></script>
+    <script src="iirlowpassfilter.js" type="text/javascript"></script>
+    <script src="microphoneinput.js" type="text/javascript"></script>
+    <style>
+    input {
+        border:  0;
+        margin-top: -110px;
+        margin-bottom: -100px;
+    }
+    
+    #up, #down, input{
+        font-size: 192px;
+        color: #800000;
+        font-family: Arial;
+    }
+    
+    #up, #down {
+        cursor: pointer;
+        margin: 0;
+        font-weight: bold;
+    }
+   
+    body, input {
+        background-color: #000000; 
+        padding: 0;
+    }
+    
+    #container, input {
+        width: 340px;
+    }
+    
+    #container {
+        text-align: center;
+    }
+
+    </style>
 </head>
 <body>
-<input type="button" value="start" id="startstop"/>
-<br>
-frequency [Hz]: <input type="number" value="440" min="20" max="20000" step="10" id="frequency"/>
-<br>
-amplitude: <input type="number" value="0.1" min="0" max="1" step="0.1" id="amplitude"/>
-<br>
-<span id="filterLog"> Hello!</span>
-<br>
-<a id="fullscreen" nohref style="cursor: pointer; text-decoration: underline;">go fullscreen</a>
-
+<div id="container">
+<a nohref id="up">^</a>
+<input type="number" value="500" min="0" max="1000" step="1" id="fillfactor"/>
+<a nohref id="down">v</a>
+</div>
 </body>
 </html>
 <script type = "text/javascript">
 
-/*        navigator.mediaDevices.getUserMedia ({audio: true, video: false}).then (function(stream){
-            var source = audioCtx.createMediaStreamSource(stream);
-            source.connect (IIRLowPassFilter.node);
-        }) */
+var FillFactor = {
 
-
-
-(function() {
-
-    SignalSource.restart();
+    data : {
+        fillFactor : 0.5,
+        _min : 0,
+        _max : 1
+    },
     
-    var a = document.getElementById("fullscreen");
-    a.onclick = function () {
-        var docelem = document.documentElement;
-        if (docelem.requestFullscreen) {
-            docelem.requestFullscreen();
+    icrement : {
+        values : {
+            normal : 0.001,
+            fast : 0.01,
+            ultra : 0.05,
+            current : "normal"
+        },
+        getValue : function () {
+            return this.values[this.values.current];
         }
-        else if (docelem.mozRequestFullScreen) {
-            docelem.mozRequestFullScreen();
-        }
-        else if (docelem.webkitRequestFullscreen) {
-            docelem.webkitRequestFullscreen();
-        }
-        else if (docelem.msRequestFullscreen) {
-            docelem.msRequestFullscreen();
+    },
+    
+    setValue : function (val) {
+        if (val < this.data._min)
+            val = this.data._min;
+        else if (val > this.data._max)
+            val = this.data._max;
+        FillFactor.data.fillFactor = val;
+        FillFactor.onchange.runcbs();
+    },
+        
+    onchange : {
+        funcs : [],
+        add : function (cb) {
+            funcs.push (cb);
+        },
+        runcbs : function () {
+            for (var i = 0; i < this.funcs.length; i++)
+                if (this.funcs[i]) this.funcs[i]();
         }
     }
-    
-})();
+
+};
 
 </script>
