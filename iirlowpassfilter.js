@@ -27,7 +27,8 @@ var IIRLowPassFilter = {
         bufferLength : 4096,
         processingLength : 256,
         signalPresenceThreshold : 26,
-        passRejectThreshold : 128,
+        passRejectThresholdRatio : 0.5,
+        mixedSignalThresholdRatio : 0.25,
         filteredValues : []
     },
     
@@ -57,8 +58,9 @@ var IIRLowPassFilter = {
         }) */
     },
     
-    onPassBand : false,
-    onRejectBand : false,
+    onPassBandOnly : false,
+    onRejectBandOnly : false,
+    onMixedSignal : false,
     onNoSignal : false,
     
     filterData : function (audioProcessingEvent) {
@@ -74,12 +76,16 @@ var IIRLowPassFilter = {
         }
         
         if (this.inputEffectiveValue > this.internal.signalPresenceThreshold) {
-            if (this.filteredEffectiveValue > this.internal.passRejectThreshold) {
-                if (!!this.onPassBand)
-                    this.onPassBand();
+            var outputToInputRatio = this.filteredEffectiveValue / this.inputEffectiveValue;
+            if (outputToInputRatio > this.internal.passRejectThresholdRatio) {
+                if (!!this.onPassBandOnly)
+                    this.onPassBandOnly();
             } else {
-                if (!!this.onRejectBand)
-                    this.onRejectBand();
+                if (outputToInputRatio > this.internal.mixedSignalThresholdRatio){
+                    if (!!this.onMixedSignal())
+                        this.onMixedSignal();
+                } else if (!!this.onRejectBandOnly)
+                    this.onRejectBandOnly();
             }
         } else {
             if (!!this.onNoSignal)
