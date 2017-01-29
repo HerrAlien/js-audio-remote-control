@@ -50,8 +50,8 @@
 var FillFactor = {
 
     data : {
-        fillFactor : 0.5,
-        _min : 0,
+        value : 0.5,
+        _min : 0.25,
         _max : 1
     },
     
@@ -62,8 +62,22 @@ var FillFactor = {
             ultra : 0.05,
             current : "normal"
         },
+        consecutiveChangesCounter : 0,
+        consecutiveChangesStepUp : 50,
+        
         getValue : function () {
+            if (this.consecutiveChangesCounter++ < this.consecutiveChangesStepUp){
+                if (this.values.current == "normal" )
+                    this.values.current = "fast";
+                else if (this.values.current == "fast")
+                    this.values.current = "ultra";
+            }
             return this.values[this.values.current];
+        },
+        
+        reset : function () {
+            this.values.current = "normal";
+            this.consecutiveChangesCounter = 0;
         }
     },
     
@@ -72,10 +86,20 @@ var FillFactor = {
             val = this.data._min;
         else if (val > this.data._max)
             val = this.data._max;
-        FillFactor.data.fillFactor = val;
-        FillFactor.onchange.runcbs();
+        this.data.value = val;
+        this.onchange.runcbs();
+    },
+    
+    increment : function {
+        this.setValue (this.data.value + this.icrement.getValue());
+        return this.data.value;
     },
         
+    decrement : function {
+        this.setValue (this.data.value - this.icrement.getValue());
+        return this.data.value;
+    },
+
     onchange : {
         funcs : [],
         add : function (cb) {
