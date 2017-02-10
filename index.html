@@ -3,6 +3,7 @@
     <script src="signalsource.js" type="text/javascript"></script>
     <script src="iirlowpassfilter.js" type="text/javascript"></script>
     <script src="microphoneinput.js" type="text/javascript"></script>
+    <script src="fillfactor.js" type="text/javascript"></script>
     <style>
     input {
         border:  0;
@@ -47,99 +48,7 @@
 </html>
 <script type = "text/javascript">
 
-var FillFactor = {
 
-    data : {
-        value : 500,
-        _min : 250,
-        _max : 1000
-    },
-    
-    view : document.getElementById("fillfactor"),
-    
-    control : {
-        up: document.getElementById("up"),
-        down: document.getElementById("down")
-    },
-    
-    __increment__ : {
-        values : {
-            normal : 1,
-            fast : 10,
-            ultra : 50,
-            current : "normal"
-        },
-        consecutiveChangesCounter : 0,
-        wasLastOpIncrement: false,
-        //! after that many consecutive changes in one direction, we increase the speed
-        consecutiveChangesStepUp : 25,
-        
-        getValue : function () {
-            if (this.consecutiveChangesCounter++ > this.consecutiveChangesStepUp){
-                if (this.values.current == "normal" )
-                    this.values.current = "fast";
-                else if (this.values.current == "fast")
-                    this.values.current = "ultra";
-                    
-                this.consecutiveChangesCounter = 0;
-            }
-            return this.values[this.values.current];
-        },
-        
-        reset : function () {
-            this.values.current = "normal";
-            this.consecutiveChangesCounter = 0;
-        }
-    },
-    
-    setValue : function (val) {
-        if (val < this.data._min)
-            val = this.data._min;
-        else if (val > this.data._max)
-            val = this.data._max;
-        this.data.value = val;
-        this.onchange.runcbs();
-    },
-    
-    getValue : function () {
-        return this.data.value / 1000;
-    },
-    
-    increment : function () {
-        if (!FillFactor.wasLastOpIncrement)
-            FillFactor.__increment__.reset();
-        FillFactor.setValue (FillFactor.data.value + FillFactor.__increment__.getValue());
-        FillFactor.wasLastOpIncrement = true;
-        return FillFactor.data.value;
-    },
-        
-    decrement : function () {
-        if (FillFactor.wasLastOpIncrement)
-            FillFactor.__increment__.reset();
-        FillFactor.setValue (FillFactor.data.value - FillFactor.__increment__.getValue());
-        FillFactor.wasLastOpIncrement = false;
-        return FillFactor.data.value;
-    },
-
-    onchange : {
-        funcs : [],
-        add : function (cb) {
-            this.funcs.push (cb);
-        },
-        runcbs : function () {
-            for (var i = 0; i < this.funcs.length; i++)
-                if (this.funcs[i]) this.funcs[i]();
-        }
-    },
-    
-    init : function () {
-        this.view.readonly = true;
-        this.control.up.onclick = this.increment;
-        this.control.down.onclick = this.decrement;
-        this.onchange.add (function() { FillFactor.view.value =  FillFactor.data.value; } );
-    }
-
-};
 
 (function(){
     FillFactor.init();
