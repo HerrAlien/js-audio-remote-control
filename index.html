@@ -51,7 +51,35 @@
 
 
 (function(){
+    SignalSource.restart();
     FillFactor.init();
+    // now put a callback for the onchange: fill factor changes => update the PWM part.
+    FillFactor.onchange.add(function(){
+        SignalSource.fillFactor = FillFactor.getValue();
+        SignalSource.restart();
+    });
+    FillFactor.onchange.runcbs();
+    // connect the filter to the fill factor
+    // low freq => lower fill factor
+    IIRLowPassFilter.onPassBandOnly = function () {
+        FillFactor.decrement();
+    }
+    
+    IIRLowPassFilter.onRejectBandOnly = function () {
+        FillFactor.increment();
+    }
+    
+    IIRLowPassFilter.onNoSignal = function () {
+        FillFactor.__increment__.reset();
+    }
+    
+    IIRLowPassFilter.init(SignalSource.audioContext);
+
+    MicrophoneInput.onFinishedInit.add (function(){
+        MicrophoneInput.node.connect(IIRLowPassFilter.node);
+    });
+    
+    MicrophoneInput.init();
 })();
 
 </script>

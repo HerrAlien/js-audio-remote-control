@@ -51,11 +51,6 @@ var IIRLowPassFilter = {
         }
         
         this.node.connect(audioCtx.destination);
-        
-/*        navigator.mediaDevices.getUserMedia ({audio: true, video: false}).then (function(stream){
-            var source = audioCtx.createMediaStreamSource(stream);
-            source.connect (IIRLowPassFilter.node);
-        }) */
     },
     
     onPassBandOnly : false,

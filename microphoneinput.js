@@ -20,7 +20,17 @@ along with this program.  If not, see https://www.gnu.org/licenses/agpl.html
 
 var MicrophoneInput = {
     node : false,
-    onFinishedInit : false,
+    onFinishedInit : {
+        funcs : [],
+        add : function (func) {
+            this.funcs.append(func);
+        },
+        run : function () {
+            for (var i = 0; i < this.funcs.length; i++)
+                if (!!this.funcs[i])
+                    this.funcs[i]();
+        }
+    },
 
     init : function (audioCtx) {
         if (!!this.node) {
@@ -30,8 +40,7 @@ var MicrophoneInput = {
         
         navigator.mediaDevices.getUserMedia ({audio: true, video: false}).then (function(stream){
             MicrophoneInput.node = audioCtx.createMediaStreamSource(stream);
-            if (!!MicrophoneInput.onFinishedInit)
-                MicrophoneInput.onFinishedInit();
+            MicrophoneInput.onFinishedInit.run();
         });
     }
 };
