@@ -28,7 +28,7 @@
     }
     
     #container, input {
-        width: 340px;
+        width: 440px;
     }
     
     #container {
@@ -50,27 +50,38 @@
 var FillFactor = {
 
     data : {
-        value : 0.5,
-        _min : 0.25,
-        _max : 1
+        value : 500,
+        _min : 250,
+        _max : 1000
     },
     
-    icrement : {
+    view : document.getElementById("fillfactor"),
+    
+    control : {
+        up: document.getElementById("up"),
+        down: document.getElementById("down")
+    },
+    
+    __increment__ : {
         values : {
-            normal : 0.001,
-            fast : 0.01,
-            ultra : 0.05,
+            normal : 1,
+            fast : 10,
+            ultra : 50,
             current : "normal"
         },
         consecutiveChangesCounter : 0,
-        consecutiveChangesStepUp : 50,
+        wasLastOpIncrement: false,
+        //! after that many consecutive changes in one direction, we increase the speed
+        consecutiveChangesStepUp : 25,
         
         getValue : function () {
-            if (this.consecutiveChangesCounter++ < this.consecutiveChangesStepUp){
+            if (this.consecutiveChangesCounter++ > this.consecutiveChangesStepUp){
                 if (this.values.current == "normal" )
                     this.values.current = "fast";
                 else if (this.values.current == "fast")
                     this.values.current = "ultra";
+                    
+                this.consecutiveChangesCounter = 0;
             }
             return this.values[this.values.current];
         },
@@ -90,27 +101,48 @@ var FillFactor = {
         this.onchange.runcbs();
     },
     
-    increment : function {
-        this.setValue (this.data.value + this.icrement.getValue());
-        return this.data.value;
+    getValue : function () {
+        return this.data.value / 1000;
+    },
+    
+    increment : function () {
+        if (!FillFactor.wasLastOpIncrement)
+            FillFactor.__increment__.reset();
+        FillFactor.setValue (FillFactor.data.value + FillFactor.__increment__.getValue());
+        FillFactor.wasLastOpIncrement = true;
+        return FillFactor.data.value;
     },
         
-    decrement : function {
-        this.setValue (this.data.value - this.icrement.getValue());
-        return this.data.value;
+    decrement : function () {
+        if (FillFactor.wasLastOpIncrement)
+            FillFactor.__increment__.reset();
+        FillFactor.setValue (FillFactor.data.value - FillFactor.__increment__.getValue());
+        FillFactor.wasLastOpIncrement = false;
+        return FillFactor.data.value;
     },
 
     onchange : {
         funcs : [],
         add : function (cb) {
-            funcs.push (cb);
+            this.funcs.push (cb);
         },
         runcbs : function () {
             for (var i = 0; i < this.funcs.length; i++)
                 if (this.funcs[i]) this.funcs[i]();
         }
+    },
+    
+    init : function () {
+        this.view.readonly = true;
+        this.control.up.onclick = this.increment;
+        this.control.down.onclick = this.decrement;
+        this.onchange.add (function() { FillFactor.view.value =  FillFactor.data.value; } );
     }
 
 };
+
+(function(){
+    FillFactor.init();
+})();
 
 </script>
