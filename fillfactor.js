@@ -109,9 +109,9 @@ var FillFactor = {
         this.control.up = document.getElementById("up");
         this.control.down = document.getElementById("down");
 
-        this.view.readonly = true;
-        this.control.up.onclick = this.increment;
-        this.control.down.onclick = this.decrement;
+        this.view.oninput = function () { FillFactor.setValue(FillFactor.view.value); }
+        this.control.up.onclick = function () { FillFactor.increment(); }
+        this.control.down.onclick = function () { FillFactor.decrement(); }
         this.onchange.add (function() { FillFactor.view.value =  FillFactor.data.value; } );
     }
 
