@@ -79,7 +79,7 @@
         MicrophoneInput.node.connect(IIRLowPassFilter.node);
     });
     
-    MicrophoneInput.init();
+    MicrophoneInput.init(SignalSource.audioContext);
 })();
 
 </script>

@@ -23,7 +23,7 @@ var MicrophoneInput = {
     onFinishedInit : {
         funcs : [],
         add : function (func) {
-            this.funcs.append(func);
+            this.funcs.push(func);
         },
         run : function () {
             for (var i = 0; i < this.funcs.length; i++)

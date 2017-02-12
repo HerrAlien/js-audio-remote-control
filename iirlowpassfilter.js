@@ -26,7 +26,7 @@ var IIRLowPassFilter = {
     internal : {
         bufferLength : 4096,
         processingLength : 256,
-        signalPresenceThreshold : 26,
+        signalPresenceThreshold : 0.001,
         passRejectThresholdRatio : 0.5,
         mixedSignalThresholdRatio : 0.25,
         filteredValues : []
@@ -77,7 +77,7 @@ var IIRLowPassFilter = {
                     this.onPassBandOnly();
             } else {
                 if (outputToInputRatio > this.internal.mixedSignalThresholdRatio){
-                    if (!!this.onMixedSignal())
+                    if (!!this.onMixedSignal)
                         this.onMixedSignal();
                 } else if (!!this.onRejectBandOnly)
                     this.onRejectBandOnly();
